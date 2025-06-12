@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "mesh-visualizer"
+version = "0.1.0"
+description = ""
+authors = [
+    "Nathnael Dereje <nathandere1357@gmail.com>",
+    "Yonatan Haile <yon019hl@gmail.com>",
+    "Gedion Ezra <gediezra@gmail.com>",
+    "Lensa Belete <lensbelete@gmail.com>",
+    "Haykel Muktar <haykelmuktar@gmail.com>",
+]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+fastapi = {extras = ["standard"], version = "^0.115.12"}
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
