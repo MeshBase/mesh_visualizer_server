@@ -46,29 +46,45 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 @app.post("/event", tags=["Mesh"], response_model=OutputEventModel)
-async def handle_event(event: InputEventModel) -> None:
+async def handle_event(event:
+       Union[
+            ConnectNeighborInput,
+            DisconnectNeighborInput,
+            HeartbeatInput,
+            TurnedOnInput,
+            TurnedOffInput,
+            SendPacketInput,
+            RecievePacketInput,
+            DropPacketInput
+       ] 
+   ) -> OutputEventModel:
     """Broadcast an event to all connected clients and update the graph accordingly."""
     try:
+        _output_event = None
+        print(event)
         if event.event_type == EventType.CONNECT_NEIGHBOR:
-            _event = ConnectNeighborInput.model_validate(event)
+            print("Trying to validate")
+            _event = ConnectNeighborInput.model_validate(event.model_dump())
             graph.add_node(_event.source_id)
             graph.add_node(_event.neighbor_id)
             graph.add_edge(
                 event.source_id,
                 _event.neighbor_id,
-                ConnectNeighborInput=_event.technology,
+                technology=_event.technology,
             )
 
+            print("Trying to output event")
             _output_event = ConnectNeighborOutput(
                 node_id=_event.source_id,
                 neighbor_id=_event.neighbor_id,
                 technology=_event.technology,
                 graph=nx.node_link_data(graph),
             )
+            print("Trying to broadcast")
             await manager.broadcastEvent(_output_event)
 
         elif event.event_type == EventType.DISCONNECT_NEIGHBOR:
-            _event = DisconnectNeighborInput.model_validate(event)
+            _event = DisconnectNeighborInput.model_validate(event.model_dump())
 
             if graph.has_edge(_event.source_id, _event.neighbor_id):
                 graph.remove_edge(_event.source_id, _event.neighbor_id)
@@ -81,7 +97,7 @@ async def handle_event(event: InputEventModel) -> None:
             await manager.broadcastEvent(_output_event)
 
         elif event.event_type == EventType.HEARTBEAT:
-            _event = HeartbeatInput.model_validate(event)
+            _event = HeartbeatInput.model_validate(event.model_dump())
             if not graph.has_node(_event.source_id):
                 graph.add_node(_event.source_id)
 
@@ -92,7 +108,7 @@ async def handle_event(event: InputEventModel) -> None:
             await manager.broadcastEvent(_output_event)
 
         elif event.event_type == EventType.TURNED_ON:
-            _event = TurnedOnInput.model_validate(event)
+            _event = TurnedOnInput.model_validate(event.model_dump())
             if not graph.has_node(event.source_id):
                 graph.add_node(event.source_id)
 
@@ -100,7 +116,7 @@ async def handle_event(event: InputEventModel) -> None:
             await manager.broadcastEvent(_output_event)
 
         elif event.event_type == EventType.TURNED_OFF:
-            _event = TurnedOnInput.model_validate(event)
+            _event = TurnedOnInput.model_validate(event.model_dump())
             if graph.has_node(event.source_id):
                 graph.remove_node(event.source_id)
 
@@ -108,7 +124,7 @@ async def handle_event(event: InputEventModel) -> None:
             await manager.broadcastEvent(_output_event)
 
         elif event.event_type == EventType.SEND_PACKET:
-            _event = SendPacketInput.model_validate(event)
+            _event = SendPacketInput.model_validate(event.model_dump())
 
             if not graph.has_node(_event.source_id):
                 graph.add_node(_event.source_id)
@@ -122,7 +138,7 @@ async def handle_event(event: InputEventModel) -> None:
             await manager.broadcastEvent(_output_event)
 
         elif event.event_type == EventType.RECIEVE_PACKET:
-            _event = RecievePacketInput.model_validate(event)
+            _event = RecievePacketInput.model_validate(event.model_dump())
 
             if not graph.has_node(_event.destination_id):
                 graph.add_node(_event.destination_id)
@@ -137,7 +153,7 @@ async def handle_event(event: InputEventModel) -> None:
             await manager.broadcastEvent(_output_event)
 
         elif event.event_type == EventType.DROP_PACKET:
-            _event = DropPacketInput.model_validate(event)
+            _event = DropPacketInput.model_validate(event.model_dump())
 
             if not graph.has_node(_event.source_id):
                 graph.add_node(_event.source_id)
@@ -148,9 +164,12 @@ async def handle_event(event: InputEventModel) -> None:
                 reason=_event.reason,
             )
             await manager.broadcastEvent(_output_event)
+        
+        else:
+            raise ValueError(f"Unknown event type: {event.event_type}")
+
+        return _output_event
 
     except Exception as e:
         print(f"Error handling event: {e}")
-        return
-
-    return
+        raise ValueError(f"Failed to handle event: {e}")

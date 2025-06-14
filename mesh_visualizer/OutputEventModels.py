@@ -1,6 +1,6 @@
 # Output Models (with timestamp)
 import datetime
-from typing import Mapping, Optional
+from typing import Mapping, Optional, Union
 from pydantic import BaseModel
 
 from mesh_visualizer.EventEnums import EventType
@@ -69,3 +69,15 @@ class DropPacketOutput(OutputEventModel):
 class UpdateGraphOutput(OutputEventModel):
     event_type: EventType = EventType.UPDATE_GRAPH
     graph: Mapping
+
+OutputType = Union[
+    ConnectNeighborOutput,
+    DisconnectNeighborOutput,
+    HeartbeatOutput,
+    TurnedOnOutput,
+    TurnedOffOutput,
+    SendPacketOutput,
+    RecievePacketOutput,
+    DropPacketOutput,
+    UpdateGraphOutput
+]
