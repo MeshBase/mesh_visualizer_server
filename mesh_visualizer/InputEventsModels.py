@@ -25,7 +25,7 @@ class DisconnectNeighborInput(InputEventModel):
 
 class HeartbeatInput(InputEventModel):
     event_type: EventType = EventType.HEARTBEAT
-    neighbor_id: str
+    destination_id: str
     packet_id: str
 
 
@@ -54,4 +54,4 @@ class RecievePacketInput(InputEventModel):
 class DropPacketInput(InputEventModel):
     event_type: EventType = EventType.DROP_PACKET
     packet_id: str
-    reason: Optional[str] = None
+    reason: Optional[str] = "Unspecified reason for dropping the packet"

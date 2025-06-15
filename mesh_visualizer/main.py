@@ -110,6 +110,7 @@ async def handle_event(
             _output_event = HeartbeatOutput(
                 node_id=_event.source_id,
                 packet_id=_event.packet_id,
+                destination_id=_event.destination_id,
             )
             await manager.broadcastEvent(_output_event)
 
@@ -118,7 +119,10 @@ async def handle_event(
             if not graph.has_node(event.source_id):
                 graph.add_node(event.source_id)
 
-            _output_event = TurnedOnOutput(node_id=_event.source_id)
+            _output_event = TurnedOnOutput(
+                node_id=_event.source_id,
+                graph=nx.node_link_data(graph),
+            )
             await manager.broadcastEvent(_output_event)
 
         elif event.event_type == EventType.TURNED_OFF:
@@ -126,7 +130,9 @@ async def handle_event(
             if graph.has_node(event.source_id):
                 graph.remove_node(event.source_id)
 
-            _output_event = TurnedOffOutput(node_id=_event.source_id)
+            _output_event = TurnedOffOutput(
+                node_id=_event.source_id, graph=nx.node_link_data(graph)
+            )
             await manager.broadcastEvent(_output_event)
 
         elif event.event_type == EventType.SEND_PACKET:
@@ -151,7 +157,6 @@ async def handle_event(
 
             _output_event = RecievePacketOutput(
                 node_id=_event.destination_id,
-                source_id=_event.source_id,
                 packet_id=_event.packet_id,
                 technology=_event.technology,
             )

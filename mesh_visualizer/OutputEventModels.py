@@ -32,16 +32,19 @@ class HeartbeatOutput(OutputEventModel):
     event_type: EventType = EventType.HEARTBEAT
     packet_id: str
     node_id: str
+    destination_id: str
 
 
 class TurnedOnOutput(OutputEventModel):
     event_type: EventType = EventType.TURNED_ON
     node_id: str
+    graph: Mapping
 
 
 class TurnedOffOutput(OutputEventModel):
     event_type: EventType = EventType.TURNED_OFF
     node_id: str
+    graph: Mapping
 
 
 class SendPacketOutput(OutputEventModel):
@@ -55,7 +58,6 @@ class SendPacketOutput(OutputEventModel):
 class RecievePacketOutput(OutputEventModel):
     event_type: EventType = EventType.RECIEVE_PACKET
     node_id: str
-    source_id: str
     packet_id: str
     technology: TechnologyTypes
 
