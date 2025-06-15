@@ -1,5 +1,5 @@
 from typing import Union
-from fastapi import Body, FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 import networkx as nx
 from mesh_visualizer import *
 
@@ -12,7 +12,7 @@ app = FastAPI(
     ],
 )
 
-graph = nx.Graph()
+graph = nx.MultiGraph()
 manager = ClientConnectionManager()
 
 
@@ -46,24 +46,23 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 @app.post("/event", tags=["Mesh"], response_model=OutputEventModel)
-async def handle_event(event:
-       Union[
-            ConnectNeighborInput,
-            DisconnectNeighborInput,
-            HeartbeatInput,
-            TurnedOnInput,
-            TurnedOffInput,
-            SendPacketInput,
-            RecievePacketInput,
-            DropPacketInput
-       ] 
-   ) -> OutputEventModel:
+async def handle_event(
+    event: Union[
+        ConnectNeighborInput,
+        DisconnectNeighborInput,
+        HeartbeatInput,
+        TurnedOnInput,
+        TurnedOffInput,
+        SendPacketInput,
+        RecievePacketInput,
+        DropPacketInput,
+    ],
+) -> OutputEventModel:
     """Broadcast an event to all connected clients and update the graph accordingly."""
     try:
         _output_event = None
         print(event)
         if event.event_type == EventType.CONNECT_NEIGHBOR:
-            print("Trying to validate")
             _event = ConnectNeighborInput.model_validate(event.model_dump())
             graph.add_node(_event.source_id)
             graph.add_node(_event.neighbor_id)
@@ -71,27 +70,34 @@ async def handle_event(event:
                 event.source_id,
                 _event.neighbor_id,
                 technology=_event.technology,
+                key=_event.technology,
             )
-
-            print("Trying to output event")
             _output_event = ConnectNeighborOutput(
                 node_id=_event.source_id,
                 neighbor_id=_event.neighbor_id,
                 technology=_event.technology,
                 graph=nx.node_link_data(graph),
             )
-            print("Trying to broadcast")
             await manager.broadcastEvent(_output_event)
 
         elif event.event_type == EventType.DISCONNECT_NEIGHBOR:
             _event = DisconnectNeighborInput.model_validate(event.model_dump())
 
-            if graph.has_edge(_event.source_id, _event.neighbor_id):
-                graph.remove_edge(_event.source_id, _event.neighbor_id)
+            # Get all edges between source and neighbor
+            edges_between = list(
+                graph.get_edge_data(_event.source_id, _event.neighbor_id).items()
+            )
+
+            # Find and remove the one with matching technology
+            for key, edge_attrs in edges_between:
+                if edge_attrs.get("technology") == _event.technology:
+                    graph.remove_edge(_event.source_id, _event.neighbor_id, key)
+                    break
 
             _output_event = DisconnectNeighborOutput(
                 node_id=_event.source_id,
                 neighbor_id=_event.neighbor_id,
+                technology=_event.technology,
                 graph=nx.node_link_data(graph),
             )
             await manager.broadcastEvent(_output_event)
@@ -164,7 +170,7 @@ async def handle_event(event:
                 reason=_event.reason,
             )
             await manager.broadcastEvent(_output_event)
-        
+
         else:
             raise ValueError(f"Unknown event type: {event.event_type}")
 

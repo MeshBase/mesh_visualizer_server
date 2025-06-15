@@ -24,6 +24,7 @@ class DisconnectNeighborOutput(OutputEventModel):
     event_type: EventType = EventType.DISCONNECT_NEIGHBOR
     node_id: str
     neighbor_id: str
+    technology: TechnologyTypes
     graph: Mapping
 
 
@@ -70,6 +71,7 @@ class UpdateGraphOutput(OutputEventModel):
     event_type: EventType = EventType.UPDATE_GRAPH
     graph: Mapping
 
+
 OutputType = Union[
     ConnectNeighborOutput,
     DisconnectNeighborOutput,
@@ -79,5 +81,5 @@ OutputType = Union[
     SendPacketOutput,
     RecievePacketOutput,
     DropPacketOutput,
-    UpdateGraphOutput
+    UpdateGraphOutput,
 ]

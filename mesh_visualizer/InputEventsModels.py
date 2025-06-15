@@ -20,11 +20,12 @@ class ConnectNeighborInput(InputEventModel):
 class DisconnectNeighborInput(InputEventModel):
     event_type: EventType = EventType.DISCONNECT_NEIGHBOR
     neighbor_id: str
+    technology: TechnologyTypes
 
 
 class HeartbeatInput(InputEventModel):
     event_type: EventType = EventType.HEARTBEAT
-    destination_id: str
+    neighbor_id: str
     packet_id: str
 
 
