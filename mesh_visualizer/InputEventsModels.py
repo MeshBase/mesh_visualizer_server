@@ -27,6 +27,7 @@ class HeartbeatInput(InputEventModel):
     event_type: EventType = EventType.HEARTBEAT
     destination_id: str
     packet_id: str
+    technology: TechnologyTypes
 
 
 class TurnedOnInput(InputEventModel):

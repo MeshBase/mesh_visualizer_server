@@ -111,6 +111,7 @@ async def handle_event(
                 node_id=_event.source_id,
                 packet_id=_event.packet_id,
                 destination_id=_event.destination_id,
+                technology=_event.technology,
             )
             await manager.broadcastEvent(_output_event)
 

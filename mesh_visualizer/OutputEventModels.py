@@ -33,6 +33,7 @@ class HeartbeatOutput(OutputEventModel):
     packet_id: str
     node_id: str
     destination_id: str
+    technology: TechnologyTypes
 
 
 class TurnedOnOutput(OutputEventModel):
